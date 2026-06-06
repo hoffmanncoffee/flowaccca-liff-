@@ -532,19 +532,19 @@
     document.getElementById('overlay').classList.add('show');
     document.getElementById('btnSubmit').disabled = true;
 
-    try {
-      await fetch(WEBHOOK_URL, {
-        method: 'POST',
-        mode: 'no-cors',
-        headers: { 'Content-Type': 'text/plain' },
-        body: JSON.stringify(payload),
-      });
+    // ส่งข้อมูลแบบ fire-and-forget ไม่รอ response
+    fetch(WEBHOOK_URL, {
+      method: 'POST',
+      mode: 'no-cors',
+      headers: { 'Content-Type': 'text/plain' },
+      body: JSON.stringify(payload),
+    }).catch(() => {});
+
+    // แสดง success หลัง 1.5 วินาที
+    setTimeout(() => {
       document.getElementById('overlay').classList.remove('show');
       showResult('success');
-    } catch {
-      document.getElementById('overlay').classList.remove('show');
-      showResult('error');
-    }
+    }, 1500);
   }
 
   function showResult(type) {

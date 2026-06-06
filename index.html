@@ -311,9 +311,9 @@
     <div class="card">
       <div class="field">
         <label class="field-label" for="orderNo">หมายเลขคำสั่งซื้อ (Shopee)<span class="req">*</span></label>
-        <input type="text" id="orderNo" inputmode="numeric" maxlength="14" placeholder="ตัวเลข 14 หลัก" autocomplete="off" />
+        <input type="text" id="orderNo" inputmode="text" maxlength="14" placeholder="ตัวอักษรและตัวเลข 14 หลัก" autocomplete="off" />
         <div class="char-counter"><span id="orderNoCount">0</span> / 14</div>
-        <div class="err-msg" id="orderNoErr">กรุณากรอกตัวเลข 14 หลักให้ครบถ้วน</div>
+        <div class="err-msg" id="orderNoErr">กรุณากรอกหมายเลขคำสั่งซื้อ 14 หลัก</div>
       </div>
     </div>
 
@@ -434,7 +434,7 @@
   }
 
   function initNumericInputs() {
-    ['orderNo','taxId','postcode','branchNo','phone'].forEach(numericOnly);
+    ['taxId','postcode','branchNo','phone'].forEach(numericOnly);
   }
 
   function initConditional() {
@@ -468,7 +468,7 @@
   function validateForm() {
     let valid = true;
 
-    const orderOk = /^\d{14}$/.test(document.getElementById('orderNo').value);
+    const orderOk = /^[A-Za-z0-9]{14}$/.test(document.getElementById('orderNo').value);
     setError('orderNo','orderNoErr',!orderOk); if (!orderOk) valid = false;
 
     const entity = document.querySelector('input[name="entityType"]:checked');

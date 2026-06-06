@@ -1,0 +1,569 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>ขอใบกำกับภาษี — Hoffmann Coffee</title>
+  <script src="https://static.line-scdn.net/liff/edge/versions/2.22.3/sdk.js"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg: #F2F2F2;
+      --surface: #FFFFFF;
+      --surface-2: #F8F8F8;
+      --header-bg: #1A1A1A;
+      --header-text: #FFFFFF;
+      --header-sub: #888888;
+      --primary: #1A1A1A;
+      --accent: #444444;
+      --text: #1A1A1A;
+      --text-sub: #777777;
+      --border: #E0E0E0;
+      --border-focus: #999999;
+      --error: #D9534F;
+      --success: #5CB85C;
+      --input-bg: #FAFAFA;
+      --card-label: #888888;
+      --radius: 10px;
+      --radius-sm: 7px;
+    }
+
+    html, body {
+      background: var(--bg);
+      font-family: 'Prompt', sans-serif;
+      color: var(--text);
+      min-height: 100vh;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    /* Header */
+    .header {
+      background: var(--header-bg);
+      padding: 20px 20px 16px;
+      position: sticky;
+      top: 0;
+      z-index: 10;
+    }
+    .header-title {
+      font-size: 22px;
+      font-weight: 600;
+      color: var(--header-text);
+    }
+
+    /* User Badge */
+    .user-badge {
+      display: none;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 14px;
+      margin: 12px 14px 0;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+    }
+    .user-badge.show { display: flex; }
+    .user-badge img { width: 22px; height: 22px; border-radius: 50%; }
+    .user-badge span { font-size: 12.5px; color: var(--text-sub); font-weight: 400; }
+    .user-badge .dot { width: 6px; height: 6px; background: var(--success); border-radius: 50%; margin-left: auto; }
+
+    /* Notice */
+    .notice {
+      margin: 12px 14px 0;
+      background: var(--surface);
+      border-radius: var(--radius);
+      border: 1px solid var(--border);
+      overflow: hidden;
+    }
+    .notice-title {
+      background: var(--primary);
+      color: #fff;
+      font-size: 14px;
+      font-weight: 500;
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+      padding: 8px 14px;
+    }
+    .notice-body {
+      padding: 12px 14px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+    .notice-row {
+      display: flex;
+      gap: 10px;
+      align-items: flex-start;
+    }
+    .notice-icon {
+      font-size: 13px;
+      margin-top: 2px;
+      flex-shrink: 0;
+    }
+    .notice-text {
+      font-size: 13px;
+      color: var(--text);
+      line-height: 1.6;
+      font-weight: 500;
+    }
+
+    /* Form */
+    .form-wrap {
+      padding: 12px 14px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      padding-bottom: 100px;
+    }
+
+    /* Card */
+    .card {
+      background: var(--surface);
+      border-radius: var(--radius);
+      padding: 16px;
+      border: 1px solid var(--border);
+    }
+    .card-label {
+      font-size: 9.5px;
+      letter-spacing: 2.5px;
+      text-transform: uppercase;
+      color: var(--card-label);
+      font-weight: 500;
+      margin-bottom: 14px;
+    }
+
+    /* Field */
+    .field { display: flex; flex-direction: column; gap: 5px; }
+    .field + .field { margin-top: 14px; }
+
+    label.field-label { font-size: 13px; font-weight: 500; color: var(--text); }
+    .req { color: var(--error); margin-left: 2px; }
+    .hint { font-weight: 300; color: var(--text-sub); font-size: 11.5px; margin-left: 4px; }
+
+    input[type="text"],
+    input[type="email"],
+    input[type="tel"],
+    textarea {
+      width: 100%;
+      padding: 12px 14px;
+      background: var(--input-bg);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      font-family: 'Prompt', sans-serif;
+      font-size: 14.5px;
+      color: var(--text);
+      outline: none;
+      transition: border-color 0.2s;
+      -webkit-appearance: none;
+    }
+    input::placeholder, textarea::placeholder { color: #BBBBBB; font-weight: 300; }
+    input:focus, textarea:focus { border-color: var(--border-focus); background: #fff; }
+    input.error, textarea.error { border-color: var(--error); }
+    textarea { resize: none; min-height: 80px; line-height: 1.7; }
+
+    .err-msg { font-size: 11.5px; color: var(--error); display: none; font-weight: 300; }
+    .err-msg.show { display: block; }
+
+    .char-counter { font-size: 10.5px; color: #BBBBBB; text-align: right; font-weight: 300; }
+
+    /* Radio */
+    .radio-group { display: flex; flex-direction: column; gap: 7px; }
+    .radio-row {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 11px 14px;
+      border-radius: var(--radius-sm);
+      border: 1px solid var(--border);
+      background: var(--input-bg);
+      cursor: pointer;
+      transition: border-color 0.15s, background 0.15s;
+    }
+    .radio-row:has(input:checked) {
+      border-color: var(--primary);
+      background: #F0F0F0;
+    }
+    .radio-row input[type="radio"] { accent-color: var(--primary); width: 16px; height: 16px; cursor: pointer; }
+    .radio-row span { font-size: 14px; font-weight: 400; color: var(--text); }
+
+    /* Conditional */
+    .section-hidden { display: none; }
+    .section-hidden.show { display: flex; flex-direction: column; }
+    .branch-input-wrap { display: none; margin-top: 8px; }
+    .branch-input-wrap.show { display: block; }
+    .divider { height: 1px; background: var(--border); margin: 14px 0; }
+
+    /* Submit */
+    .submit-bar {
+      position: fixed;
+      bottom: 0; left: 0; right: 0;
+      padding: 12px 14px 22px;
+      background: var(--bg);
+      border-top: 1px solid var(--border);
+    }
+    .btn-submit {
+      width: 100%;
+      padding: 15px;
+      background: var(--primary);
+      color: #FFFFFF;
+      font-family: 'Prompt', sans-serif;
+      font-size: 15px;
+      font-weight: 600;
+      border: none;
+      border-radius: var(--radius);
+      cursor: pointer;
+      letter-spacing: 0.3px;
+      transition: opacity 0.2s, transform 0.1s;
+    }
+    .btn-submit:active { transform: scale(0.98); opacity: 0.85; }
+    .btn-submit:disabled { opacity: 0.3; cursor: not-allowed; }
+
+    /* Overlay */
+    .overlay {
+      display: none;
+      position: fixed; inset: 0;
+      background: rgba(0,0,0,0.5);
+      z-index: 100;
+      align-items: center;
+      justify-content: center;
+      flex-direction: column;
+      gap: 12px;
+    }
+    .overlay.show { display: flex; }
+    .spinner {
+      width: 30px; height: 30px;
+      border: 2px solid #ddd;
+      border-top-color: #333;
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .overlay p { color: #555; font-size: 14px; font-weight: 300; background: #fff; padding: 10px 20px; border-radius: 8px; }
+
+    /* Result */
+    .result-screen {
+      display: none;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      padding: 40px 24px;
+      text-align: center;
+      gap: 12px;
+      background: var(--bg);
+    }
+    .result-screen.show { display: flex; }
+    .result-bar { width: 32px; height: 3px; background: var(--primary); border-radius: 2px; margin-bottom: 6px; }
+    .result-title { font-size: 20px; font-weight: 600; color: var(--primary); }
+    .result-desc { font-size: 13.5px; color: var(--text-sub); line-height: 1.8; font-weight: 300; white-space: pre-line; }
+  </style>
+</head>
+<body>
+
+<div class="overlay" id="overlay">
+  <div class="spinner"></div>
+  <p>กำลังส่งข้อมูล</p>
+</div>
+
+<div class="result-screen" id="resultScreen">
+  <div class="result-bar"></div>
+  <div class="result-title" id="resultTitle"></div>
+  <div class="result-desc" id="resultDesc"></div>
+</div>
+
+<div id="mainContent">
+  <div class="header">
+    <div class="header-title">ขอใบกำกับภาษีอิเล็กทรอนิกส์</div>
+  </div>
+
+  <div class="user-badge" id="userBadge">
+    <img id="userAvatar" src="" alt="" />
+    <span id="userName"></span>
+    <div class="dot"></div>
+  </div>
+
+  <!-- Notice -->
+  <div class="notice">
+    <div class="notice-title">เงื่อนไขการออกใบกำกับภาษี</div>
+    <div class="notice-body">
+      <div class="notice-row">
+        <span class="notice-icon">✅</span>
+        <span class="notice-text">ลูกค้าต้องกดยืนยันการรับสินค้าก่อน จึงจะสามารถออกใบเสร็จได้</span>
+      </div>
+      <div class="notice-row">
+        <span class="notice-icon">📅</span>
+        <span class="notice-text">สงวนสิทธิในการออกใบกำกับภาษีภายในเดือนเดียวกันเท่านั้น (นับจากวันที่กดรับสินค้า)</span>
+      </div>
+      <div class="notice-row">
+        <span class="notice-icon">⚠️</span>
+        <span class="notice-text">กรณีกดรับสินค้าวันสุดท้ายของเดือน สามารถออกใบเสร็จได้ช้าสุดไม่เกินวันที่ 1 ของเดือนถัดไป</span>
+      </div>
+      <div class="notice-row">
+        <span class="notice-icon">📧</span>
+        <span class="notice-text">บริษัทจะจัดส่ง eTax ให้ทางอีเมลของลูกค้า หากต้องการแก้ไขกรุณาติดต่อผ่าน LINE @hoffmanncoffee</span>
+      </div>
+    </div>
+  </div>
+
+  <form class="form-wrap" id="taxForm" novalidate>
+
+    <div class="card">
+      <div class="field">
+        <label class="field-label" for="orderNo">หมายเลขคำสั่งซื้อ (Shopee)<span class="req">*</span></label>
+        <input type="text" id="orderNo" inputmode="numeric" maxlength="14" placeholder="ตัวเลข 14 หลัก" autocomplete="off" />
+        <div class="char-counter"><span id="orderNoCount">0</span> / 14</div>
+        <div class="err-msg" id="orderNoErr">กรุณากรอกตัวเลข 14 หลักให้ครบถ้วน</div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="field">
+        <label class="field-label">บุคคล / นิติบุคคล<span class="req">*</span></label>
+        <div class="radio-group">
+          <label class="radio-row">
+            <input type="radio" name="entityType" value="corporate" id="entityCorp" />
+            <span>นิติบุคคล</span>
+          </label>
+          <label class="radio-row">
+            <input type="radio" name="entityType" value="individual" id="entityIndiv" />
+            <span>บุคคลธรรมดา</span>
+          </label>
+        </div>
+        <div class="err-msg" id="entityErr">กรุณาเลือกประเภท</div>
+      </div>
+
+      <div class="section-hidden" id="branchSection">
+        <div class="divider"></div>
+        <div class="field">
+          <label class="field-label">สำนักงานใหญ่ / สาขา<span class="req">*</span></label>
+          <div class="radio-group">
+            <label class="radio-row">
+              <input type="radio" name="branchType" value="head" id="branchHead" />
+              <span>สำนักงานใหญ่</span>
+            </label>
+            <label class="radio-row">
+              <input type="radio" name="branchType" value="branch" id="branchSub" />
+              <span>สาขา</span>
+            </label>
+          </div>
+          <div class="err-msg" id="branchTypeErr">กรุณาเลือกสำนักงานใหญ่หรือสาขา</div>
+          <div class="branch-input-wrap" id="branchNumWrap">
+            <input type="text" id="branchNo" inputmode="numeric" maxlength="5" placeholder="เลขสาขา 5 หลัก เช่น 00001" autocomplete="off" />
+            <div class="err-msg" id="branchNoErr">กรุณากรอกตัวเลขสาขา 5 หลัก</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="field">
+        <label class="field-label" for="fullName">ชื่อ-นามสกุล / ชื่อบริษัท<span class="req">*</span><span class="hint">(ไม่ต้องระบุสาขา)</span></label>
+        <input type="text" id="fullName" placeholder="ชื่อตามเอกสารทางการ" autocomplete="name" />
+        <div class="err-msg" id="fullNameErr">กรุณากรอกชื่อ</div>
+      </div>
+      <div class="field">
+        <label class="field-label" for="taxId">เลขประจำตัวผู้เสียภาษี<span class="req">*</span></label>
+        <input type="text" id="taxId" inputmode="numeric" maxlength="13" placeholder="ตัวเลข 13 หลัก" autocomplete="off" />
+        <div class="char-counter"><span id="taxIdCount">0</span> / 13</div>
+        <div class="err-msg" id="taxIdErr">กรุณากรอกตัวเลข 13 หลักให้ครบถ้วน</div>
+      </div>
+      <div class="field">
+        <label class="field-label" for="address">ที่อยู่สำหรับออกใบกำกับภาษี<span class="req">*</span></label>
+        <textarea id="address" placeholder="บ้านเลขที่ ถนน แขวง/ตำบล เขต/อำเภอ จังหวัด" rows="3"></textarea>
+        <div class="err-msg" id="addressErr">กรุณากรอกที่อยู่</div>
+      </div>
+      <div class="field">
+        <label class="field-label" for="postcode">รหัสไปรษณีย์<span class="req">*</span></label>
+        <input type="text" id="postcode" inputmode="numeric" maxlength="5" placeholder="5 หลัก" autocomplete="postal-code" />
+        <div class="err-msg" id="postcodeErr">กรุณากรอกรหัสไปรษณีย์ 5 หลัก</div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="field">
+        <label class="field-label" for="phone">เบอร์โทรศัพท์<span class="req">*</span></label>
+        <input type="tel" id="phone" maxlength="10" placeholder="0812345678" autocomplete="tel" />
+        <div class="err-msg" id="phoneErr">กรุณากรอกเบอร์โทร 10 หลัก ขึ้นต้นด้วย 0</div>
+      </div>
+      <div class="field">
+        <label class="field-label" for="email">อีเมล (สำหรับรับใบกำกับภาษี)<span class="req">*</span></label>
+        <input type="email" id="email" placeholder="example@email.com" autocomplete="email" inputmode="email" />
+        <div class="err-msg" id="emailErr">กรุณากรอกอีเมลให้ถูกต้อง</div>
+      </div>
+    </div>
+
+  </form>
+
+  <div class="submit-bar">
+    <button class="btn-submit" id="btnSubmit" type="button">ส่งข้อมูลขอใบกำกับภาษี</button>
+  </div>
+</div>
+
+<script>
+  const LIFF_ID = '2010312278-U994TVBK';
+  const WEBHOOK_URL = 'https://hook.us2.make.com/nk82dc85blcsiitxtzf6rubnbev9nzrf';
+
+  let lineUserId = null;
+  let lineDisplayName = null;
+
+  async function initLiff() {
+    try {
+      await liff.init({ liffId: LIFF_ID });
+      if (!liff.isLoggedIn()) { liff.login(); return; }
+      const profile = await liff.getProfile();
+      lineUserId = profile.userId;
+      lineDisplayName = profile.displayName;
+      document.getElementById('userAvatar').src = profile.pictureUrl || '';
+      document.getElementById('userName').textContent = profile.displayName;
+      document.getElementById('userBadge').classList.add('show');
+    } catch (e) { console.warn('LIFF init (preview):', e); }
+  }
+
+  function initCounters() {
+    [['orderNo','orderNoCount'],['taxId','taxIdCount']].forEach(([id,cid]) => {
+      const el = document.getElementById(id);
+      const ct = document.getElementById(cid);
+      el.addEventListener('input', () => { ct.textContent = el.value.length; });
+    });
+  }
+
+  function numericOnly(id) {
+    const el = document.getElementById(id);
+    if (el) el.addEventListener('input', () => { el.value = el.value.replace(/[^0-9]/g, ''); });
+  }
+
+  function initNumericInputs() {
+    ['orderNo','taxId','postcode','branchNo','phone'].forEach(numericOnly);
+  }
+
+  function initConditional() {
+    document.querySelectorAll('input[name="entityType"]').forEach(r => {
+      r.addEventListener('change', () => {
+        const isCorp = document.getElementById('entityCorp').checked;
+        document.getElementById('branchSection').classList.toggle('show', isCorp);
+        if (!isCorp) {
+          document.querySelectorAll('input[name="branchType"]').forEach(x => x.checked = false);
+          document.getElementById('branchNumWrap').classList.remove('show');
+          document.getElementById('branchNo').value = '';
+        }
+      });
+    });
+    document.querySelectorAll('input[name="branchType"]').forEach(r => {
+      r.addEventListener('change', () => {
+        const isBranch = document.getElementById('branchSub').checked;
+        document.getElementById('branchNumWrap').classList.toggle('show', isBranch);
+        if (!isBranch) document.getElementById('branchNo').value = '';
+      });
+    });
+  }
+
+  function setError(inputId, errId, hasError) {
+    const input = document.getElementById(inputId);
+    const err = document.getElementById(errId);
+    if (input) { input.classList.toggle('error', hasError); }
+    if (err) err.classList.toggle('show', hasError);
+  }
+
+  function validateForm() {
+    let valid = true;
+
+    const orderOk = /^\d{14}$/.test(document.getElementById('orderNo').value);
+    setError('orderNo','orderNoErr',!orderOk); if (!orderOk) valid = false;
+
+    const entity = document.querySelector('input[name="entityType"]:checked');
+    document.getElementById('entityErr').classList.toggle('show', !entity);
+    if (!entity) valid = false;
+
+    if (entity?.value === 'corporate') {
+      const branch = document.querySelector('input[name="branchType"]:checked');
+      document.getElementById('branchTypeErr').classList.toggle('show', !branch);
+      if (!branch) valid = false;
+      if (branch?.value === 'branch') {
+        const branchOk = /^\d{5}$/.test(document.getElementById('branchNo').value);
+        setError('branchNo','branchNoErr',!branchOk); if (!branchOk) valid = false;
+      }
+    }
+
+    const nameOk = document.getElementById('fullName').value.trim().length > 0;
+    setError('fullName','fullNameErr',!nameOk); if (!nameOk) valid = false;
+
+    const taxOk = /^\d{13}$/.test(document.getElementById('taxId').value);
+    setError('taxId','taxIdErr',!taxOk); if (!taxOk) valid = false;
+
+    const addrOk = document.getElementById('address').value.trim().length > 0;
+    setError('address','addressErr',!addrOk); if (!addrOk) valid = false;
+
+    const pcOk = /^\d{5}$/.test(document.getElementById('postcode').value);
+    setError('postcode','postcodeErr',!pcOk); if (!pcOk) valid = false;
+
+    const phoneOk = /^0\d{9}$/.test(document.getElementById('phone').value);
+    setError('phone','phoneErr',!phoneOk); if (!phoneOk) valid = false;
+
+    const emailOk = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(document.getElementById('email').value.trim());
+    setError('email','emailErr',!emailOk); if (!emailOk) valid = false;
+
+    return valid;
+  }
+
+  async function handleSubmit() {
+    if (!validateForm()) {
+      document.querySelector('.error, .err-msg.show')?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      return;
+    }
+    const entityVal = document.querySelector('input[name="entityType"]:checked').value;
+    const branchTypeVal = entityVal === 'corporate' ? document.querySelector('input[name="branchType"]:checked')?.value : null;
+    const payload = {
+      line_user_id: lineUserId,
+      line_display_name: lineDisplayName,
+      order_no: document.getElementById('orderNo').value,
+      entity_type: entityVal,
+      branch_type: branchTypeVal,
+      branch_no: branchTypeVal === 'branch' ? document.getElementById('branchNo').value : null,
+      full_name: document.getElementById('fullName').value.trim(),
+      tax_id: document.getElementById('taxId').value,
+      address: document.getElementById('address').value.trim(),
+      postcode: document.getElementById('postcode').value,
+      phone: document.getElementById('phone').value,
+      email: document.getElementById('email').value.trim(),
+      submitted_at: new Date().toISOString(),
+    };
+
+    document.getElementById('overlay').classList.add('show');
+    document.getElementById('btnSubmit').disabled = true;
+
+    try {
+      await fetch(WEBHOOK_URL, {
+        method: 'POST',
+        mode: 'no-cors',
+        headers: { 'Content-Type': 'text/plain' },
+        body: JSON.stringify(payload),
+      });
+      document.getElementById('overlay').classList.remove('show');
+      showResult('success');
+    } catch {
+      document.getElementById('overlay').classList.remove('show');
+      showResult('error');
+    }
+  }
+
+  function showResult(type) {
+    document.getElementById('mainContent').style.display = 'none';
+    document.getElementById('resultScreen').classList.add('show');
+    if (type === 'success') {
+      document.getElementById('resultTitle').textContent = 'ส่งข้อมูลเรียบร้อยแล้ว';
+      document.getElementById('resultDesc').textContent = 'เราจะตรวจสอบและจัดส่งใบกำกับภาษีอิเล็กทรอนิกส์\nไปยังอีเมลของคุณภายใน 1 วันทำการ\n\nหากมีข้อสงสัยติดต่อได้ทาง LINE @hoffmanncoffee';
+    } else {
+      document.getElementById('resultTitle').textContent = 'เกิดข้อผิดพลาด';
+      document.getElementById('resultDesc').textContent = 'ไม่สามารถส่งข้อมูลได้ในขณะนี้\nกรุณาลองใหม่อีกครั้ง หรือติดต่อ LINE @hoffmanncoffee';
+    }
+  }
+
+  document.getElementById('btnSubmit').addEventListener('click', handleSubmit);
+  initLiff();
+  initCounters();
+  initNumericInputs();
+  initConditional();
+</script>
+</body>
+</html>

@@ -275,7 +275,6 @@
 <div id="mainContent">
   <div class="header">
     <div class="header-title">ขอใบกำกับภาษีอิเล็กทรอนิกส์</div>
-    <div style="font-size:10px;color:#555;margin-top:4px;">v3-debug</div>
   </div>
 
   <div class="user-badge" id="userBadge">
@@ -533,11 +532,15 @@
     document.getElementById('overlay').classList.add('show');
     document.getElementById('btnSubmit').disabled = true;
 
-    // DEBUG: ทดสอบ JS ทำงานได้มั้ย
-    setTimeout(() => {
-      document.getElementById('overlay').classList.remove('show');
-      showResult('success');
-    }, 500);
+    fetch(WEBHOOK_URL, {
+      method: 'POST',
+      mode: 'no-cors',
+      headers: { 'Content-Type': 'text/plain' },
+      body: JSON.stringify(payload),
+    }).catch(() => {});
+
+    document.getElementById('overlay').classList.remove('show');
+    showResult('success');
   }
 
   function showResult(type) {

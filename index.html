@@ -297,7 +297,7 @@
       </div>
       <div class="notice-row">
         <span class="notice-icon">⚠️</span>
-        <span class="notice-text">กรณีกดรับสินค้าวันสุดท้ายของเดือน สามารถออกใบเสร็จได้ช้าสุดไม่เกินวันที่ 1 ของเดือนถัดไป</span>
+        <span class="notice-text">กรณีกดรับสินค้าวันสุดท้ายของเดือน สามารถออกใบเสร็จได้ช้าสุดไม่เกินวันที่ 3 ของเดือนถัดไป</span>
       </div>
       <div class="notice-row">
         <span class="notice-icon">📧</span>
@@ -311,9 +311,9 @@
     <div class="card">
       <div class="field">
         <label class="field-label" for="orderNo">หมายเลขคำสั่งซื้อ (Shopee)<span class="req">*</span></label>
-        <input type="text" id="orderNo" inputmode="text" maxlength="14" placeholder="ตัวอักษรและตัวเลข 14 หลัก" autocomplete="off" />
-        <div class="char-counter"><span id="orderNoCount">0</span> / 14</div>
-        <div class="err-msg" id="orderNoErr">กรุณากรอกหมายเลขคำสั่งซื้อ 14 หลัก</div>
+        <input type="text" id="orderNo" inputmode="text" maxlength="18" placeholder="ตัวเลข 18 หลัก" autocomplete="off" />
+        <div class="char-counter"><span id="orderNoCount">0</span> / 18</div>
+        <div class="err-msg" id="orderNoErr">กรุณากรอกหมายเลขคำสั่งซื้อ 18 หลัก</div>
       </div>
     </div>
 
@@ -402,7 +402,7 @@
 
 <script>
   const LIFF_ID = '2010312278-U994TVBK';
-  const WEBHOOK_URL = 'https://script.google.com/macros/s/AKfycbxLBBcxr3RdRW1GwJQjwON_F5VWg94ONLptb9uiPs6zEU7zyvaV2TTmLHd_SETEVkl8/exec';
+  const WEBHOOK_URL = 'https://script.google.com/macros/s/AKfycbyMcy4fpV-Ra6qDLs_PNy8ROhEVhPoeK0f1Yz-4pdjE0FbQarV_lyGU72s9FyEBSmexeQ/exec';
 
   let lineUserId = null;
   let lineDisplayName = null;
@@ -468,7 +468,7 @@
   function validateForm() {
     let valid = true;
 
-    const orderOk = /^[A-Za-z0-9]{14}$/.test(document.getElementById('orderNo').value);
+    const orderOk = /^[A-Za-z0-9]{18}$/.test(document.getElementById('orderNo').value);
     setError('orderNo','orderNoErr',!orderOk); if (!orderOk) valid = false;
 
     const entity = document.querySelector('input[name="entityType"]:checked');
@@ -532,27 +532,30 @@
     document.getElementById('overlay').classList.add('show');
     document.getElementById('btnSubmit').disabled = true;
 
-    fetch(WEBHOOK_URL, {
-      method: 'POST',
-      mode: 'no-cors',
-      headers: { 'Content-Type': 'text/plain' },
-      body: JSON.stringify(payload),
-    }).catch(() => {});
-
-    document.getElementById('overlay').classList.remove('show');
-    showResult('success');
+    try {
+      const res    = await fetch(WEBHOOK_URL, {
+        method:  'POST',
+        headers: { 'Content-Type': 'text/plain' },
+        body:    JSON.stringify(payload),
+      });
+      const result = await res.json();
+      document.getElementById('overlay').classList.remove('show');
+      showResult(result.status, result.message);
+    } catch (err) {
+      document.getElementById('overlay').classList.remove('show');
+      showResult('error', 'เกิดข้อผิดพลาด กรุณาลองใหม่หรือติดต่อ LINE @hoffmanncoffee');
+    }
   }
 
-  function showResult(type) {
+  function showResult(type, message) {
     document.getElementById('mainContent').style.display = 'none';
     document.getElementById('resultScreen').classList.add('show');
     if (type === 'success') {
       document.getElementById('resultTitle').textContent = 'ส่งข้อมูลเรียบร้อยแล้ว';
-      document.getElementById('resultDesc').textContent = 'เราจะตรวจสอบและจัดส่งใบกำกับภาษีอิเล็กทรอนิกส์\nไปยังอีเมลของคุณภายใน 1 วันทำการ\n\nหากมีข้อสงสัยติดต่อได้ทาง LINE @hoffmanncoffee';
     } else {
-      document.getElementById('resultTitle').textContent = 'เกิดข้อผิดพลาด';
-      document.getElementById('resultDesc').textContent = 'ไม่สามารถส่งข้อมูลได้ในขณะนี้\nกรุณาลองใหม่อีกครั้ง หรือติดต่อ LINE @hoffmanncoffee';
+      document.getElementById('resultTitle').textContent = 'ไม่สามารถดำเนินการได้';
     }
+    document.getElementById('resultDesc').textContent = message || '';
   }
 
   document.getElementById('btnSubmit').addEventListener('click', handleSubmit);

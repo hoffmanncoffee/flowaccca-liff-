@@ -311,9 +311,9 @@
     <div class="card">
       <div class="field">
         <label class="field-label" for="orderNo">หมายเลขคำสั่งซื้อ (Shopee)<span class="req">*</span></label>
-        <input type="text" id="orderNo" inputmode="text" maxlength="18" placeholder="ตัวเลข 18 หลัก" autocomplete="off" />
-        <div class="char-counter"><span id="orderNoCount">0</span> / 18</div>
-        <div class="err-msg" id="orderNoErr">กรุณากรอกหมายเลขคำสั่งซื้อ 18 หลัก</div>
+        <input type="text" id="orderNo" inputmode="text" maxlength="14" placeholder="ตัวเลข 14 หลัก" autocomplete="off" />
+        <div class="char-counter"><span id="orderNoCount">0</span> / 14</div>
+        <div class="err-msg" id="orderNoErr">กรุณากรอกหมายเลขคำสั่งซื้อ 14 หลัก</div>
       </div>
     </div>
 
@@ -468,7 +468,7 @@
   function validateForm() {
     let valid = true;
 
-    const orderOk = /^[A-Za-z0-9]{18}$/.test(document.getElementById('orderNo').value);
+    const orderOk = /^[A-Za-z0-9]{14}$/.test(document.getElementById('orderNo').value);
     setError('orderNo','orderNoErr',!orderOk); if (!orderOk) valid = false;
 
     const entity = document.querySelector('input[name="entityType"]:checked');

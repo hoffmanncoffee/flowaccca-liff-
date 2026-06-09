@@ -256,7 +256,9 @@
     .result-screen.show { display: flex; }
     .result-bar { width: 32px; height: 3px; background: var(--primary); border-radius: 2px; margin-bottom: 6px; }
     .result-title { font-size: 20px; font-weight: 600; color: var(--primary); }
-    .result-desc { font-size: 13.5px; color: var(--text-sub); line-height: 1.8; font-weight: 300; white-space: pre-line; }
+    .result-desc { font-size: 14.5px; color: var(--text-sub); line-height: 1.8; font-weight: 300; white-space: pre-line; }
+    .result-screen.error .result-title { color: #BE1E2D; }
+    .result-screen.error .result-desc  { color: #BE1E2D; }
   </style>
 </head>
 <body>
@@ -402,7 +404,7 @@
 
 <script>
   const LIFF_ID = '2010312278-U994TVBK';
-  const WEBHOOK_URL = 'https://script.google.com/macros/s/AKfycbyMcy4fpV-Ra6qDLs_PNy8ROhEVhPoeK0f1Yz-4pdjE0FbQarV_lyGU72s9FyEBSmexeQ/exec';
+  const WEBHOOK_URL = 'https://script.google.com/macros/s/AKfycbySUHz8SF0iE8TAIHlm-ph-3P7oNgfyD-XaxeoE8A9ho5spkX6acqXS1py6lM6m9BWo2w/exec';
 
   let lineUserId = null;
   let lineDisplayName = null;
@@ -549,12 +551,12 @@
 
   function showResult(type, message) {
     document.getElementById('mainContent').style.display = 'none';
-    document.getElementById('resultScreen').classList.add('show');
-    if (type === 'success') {
-      document.getElementById('resultTitle').textContent = 'ส่งข้อมูลเรียบร้อยแล้ว';
-    } else {
-      document.getElementById('resultTitle').textContent = 'ไม่สามารถดำเนินการได้';
-    }
+    const screen = document.getElementById('resultScreen');
+    screen.classList.add('show');
+    screen.classList.remove('error', 'success');
+    screen.classList.add(type === 'success' ? 'success' : 'error');
+    document.getElementById('resultTitle').textContent =
+      type === 'success' ? 'ส่งข้อมูลเรียบร้อยแล้ว' : 'ไม่สามารถดำเนินการได้';
     document.getElementById('resultDesc').textContent = message || '';
   }
 

@@ -544,7 +544,7 @@
       showResult(result.status, result.message);
     } catch (err) {
       document.getElementById('overlay').classList.remove('show');
-      showResult('error', 'เกิดข้อผิดพลาด กรุณาลองใหม่หรือติดต่อ LINE @hoffmanncoffee');
+      showResult('error', 'เกิดข้อผิดพลาด กรุณาลองใหม่<br>หรือติดต่อ LINE @hoffmanncoffee');
     }
   }
 
@@ -556,7 +556,7 @@
     screen.classList.add(type === 'success' ? 'success' : 'error');
     document.getElementById('resultTitle').textContent =
       type === 'success' ? 'ส่งข้อมูลเรียบร้อยแล้ว' : 'ไม่สามารถดำเนินการได้';
-    document.getElementById('resultDesc').textContent = message || '';
+    document.getElementById('resultDesc').innerHTML = message || '';
   }
 
   document.getElementById('btnSubmit').addEventListener('click', handleSubmit);

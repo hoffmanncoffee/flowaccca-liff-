@@ -280,7 +280,7 @@
 
 <div class="overlay" id="overlay">
   <div class="spinner"></div>
-  <p>กำลังส่งข้อมูล</p>
+  <p id="overlayText">กำลังส่งข้อมูล</p>
 </div>
 
 <div class="result-screen" id="resultScreen">
@@ -425,6 +425,12 @@
   let lineUserId = null;
   let lineDisplayName = null;
 
+  // แสดง spinner ระหว่าง LIFF token exchange (โหลดครั้งแรก)
+  if (window.location.search.includes('liff.state') || window.location.search.includes('code=')) {
+    document.getElementById('overlayText').style.display = 'none';
+    document.getElementById('overlay').classList.add('show');
+  }
+
   async function initLiff() {
     try {
       await liff.init({ liffId: LIFF_ID });
@@ -440,6 +446,7 @@
       document.getElementById('userName').textContent = profile.displayName;
       document.getElementById('userBadge').classList.add('show');
     } catch (e) { console.warn('LIFF init:', e); }
+    finally { document.getElementById('overlay').classList.remove('show'); }
   }
 
   function initCounters() {
@@ -551,6 +558,7 @@
       submitted_at: new Date().toISOString(),
     };
 
+    document.getElementById('overlayText').style.display = '';
     document.getElementById('overlay').classList.add('show');
     document.getElementById('btnSubmit').disabled = true;
 

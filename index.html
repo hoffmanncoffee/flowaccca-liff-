@@ -290,7 +290,7 @@
   <button class="btn-retry" id="btnRetry" style="display:none">กลับแก้ไขข้อมูล</button>
 </div>
 
-<div id="mainContent" style="display:none">
+<div id="mainContent">
   <div class="header">
     <div class="header-title">ขอใบกำกับภาษีอิเล็กทรอนิกส์</div>
   </div>
@@ -428,15 +428,19 @@
   async function initLiff() {
     try {
       await liff.init({ liffId: LIFF_ID });
-      if (!liff.isLoggedIn()) { liff.login(); return; }
+      if (!liff.isLoggedIn()) {
+        document.getElementById('mainContent').style.display = 'none';
+        liff.login();
+        return;
+      }
       const profile = await liff.getProfile();
       lineUserId = profile.userId;
       lineDisplayName = profile.displayName;
       document.getElementById('userAvatar').src = profile.pictureUrl || '';
       document.getElementById('userName').textContent = profile.displayName;
       document.getElementById('userBadge').classList.add('show');
-    } catch (e) { console.warn('LIFF init (preview):', e); }
-    finally { document.getElementById('mainContent').style.display = ''; }
+    } catch (e) { console.warn('LIFF init:', e); }
+  }
   }
 
   function initCounters() {

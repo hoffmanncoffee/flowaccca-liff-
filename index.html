@@ -436,7 +436,7 @@
       document.getElementById('userName').textContent = profile.displayName;
       document.getElementById('userBadge').classList.add('show');
     } catch (e) { console.warn('LIFF init (preview):', e); }
-    document.getElementById('mainContent').style.display = '';
+    finally { document.getElementById('mainContent').style.display = ''; }
   }
 
   function initCounters() {
@@ -559,14 +559,14 @@
       });
       const result = await res.json();
       document.getElementById('overlay').classList.remove('show');
-      showResult(result.status, result.message);
+      showResult(result.status, result.message, result.retry);
     } catch (err) {
       document.getElementById('overlay').classList.remove('show');
-      showResult('error', 'ระบบขัดข้อง กรุณาลองใหม่ภายหลัง<br>หรือติดต่อเจ้าหน้าที่');
+      showResult('error', 'ระบบขัดข้อง กรุณาลองใหม่ภายหลัง<br>หรือติดต่อเจ้าหน้าที่', true);
     }
   }
 
-  function showResult(type, message) {
+  function showResult(type, message, retry) {
     document.getElementById('mainContent').style.display = 'none';
     document.getElementById('btnSubmit').disabled = false;
     const screen = document.getElementById('resultScreen');
@@ -576,7 +576,7 @@
     document.getElementById('resultTitle').textContent =
       type === 'success' ? 'ส่งข้อมูลเรียบร้อยแล้ว' : 'ไม่สามารถดำเนินการได้';
     document.getElementById('resultDesc').innerHTML = message || '';
-    document.getElementById('btnRetry').style.display = type === 'success' ? 'none' : '';
+    document.getElementById('btnRetry').style.display = (type !== 'success' && retry !== false) ? '' : 'none';
   }
 
   document.getElementById('btnRetry').addEventListener('click', () => {

@@ -259,6 +259,21 @@
     .result-desc { font-size: 14.5px; color: var(--text-sub); line-height: 1.8; font-weight: 300; white-space: pre-line; }
     .result-screen.error .result-desc   { color: #BE1E2D; }
     .result-screen.success .result-desc { color: #27AE60; font-size: 14.5px; font-weight: 400; }
+
+    .btn-retry {
+      margin-top: 8px;
+      padding: 13px 28px;
+      background: transparent;
+      color: var(--text-sub);
+      font-family: 'Prompt', sans-serif;
+      font-size: 14px;
+      font-weight: 400;
+      border: 1.5px solid var(--border);
+      border-radius: var(--radius);
+      cursor: pointer;
+      transition: opacity 0.2s;
+    }
+    .btn-retry:active { opacity: 0.7; }
   </style>
 </head>
 <body>
@@ -272,9 +287,10 @@
   <div class="result-bar"></div>
   <div class="result-title" id="resultTitle"></div>
   <div class="result-desc" id="resultDesc"></div>
+  <button class="btn-retry" id="btnRetry" style="display:none">กลับแก้ไขข้อมูล</button>
 </div>
 
-<div id="mainContent">
+<div id="mainContent" style="display:none">
   <div class="header">
     <div class="header-title">ขอใบกำกับภาษีอิเล็กทรอนิกส์</div>
   </div>
@@ -313,7 +329,7 @@
     <div class="card">
       <div class="field">
         <label class="field-label" for="orderNo">หมายเลขคำสั่งซื้อ (Shopee)<span class="req">*</span></label>
-        <input type="text" id="orderNo" inputmode="text" maxlength="14" placeholder="ตัวเลข 14 หลัก" autocomplete="off" />
+        <input type="text" id="orderNo" inputmode="text" maxlength="14" placeholder="ตัวอักษรและตัวเลข 14 หลัก" autocomplete="off" />
         <div class="char-counter"><span id="orderNoCount">0</span> / 14</div>
         <div class="err-msg" id="orderNoErr">กรุณากรอกหมายเลขคำสั่งซื้อ 14 หลัก</div>
       </div>
@@ -420,6 +436,7 @@
       document.getElementById('userName').textContent = profile.displayName;
       document.getElementById('userBadge').classList.add('show');
     } catch (e) { console.warn('LIFF init (preview):', e); }
+    document.getElementById('mainContent').style.display = '';
   }
 
   function initCounters() {
@@ -545,12 +562,13 @@
       showResult(result.status, result.message);
     } catch (err) {
       document.getElementById('overlay').classList.remove('show');
-      showResult('error', 'ระบบขัดข้อง กรุณาติดต่อเจ้าหน้าที่');
+      showResult('error', 'ระบบขัดข้อง กรุณาลองใหม่ภายหลัง<br>หรือติดต่อเจ้าหน้าที่');
     }
   }
 
   function showResult(type, message) {
     document.getElementById('mainContent').style.display = 'none';
+    document.getElementById('btnSubmit').disabled = false;
     const screen = document.getElementById('resultScreen');
     screen.classList.add('show');
     screen.classList.remove('error', 'success');
@@ -558,7 +576,13 @@
     document.getElementById('resultTitle').textContent =
       type === 'success' ? 'ส่งข้อมูลเรียบร้อยแล้ว' : 'ไม่สามารถดำเนินการได้';
     document.getElementById('resultDesc').innerHTML = message || '';
+    document.getElementById('btnRetry').style.display = type === 'success' ? 'none' : '';
   }
+
+  document.getElementById('btnRetry').addEventListener('click', () => {
+    document.getElementById('resultScreen').classList.remove('show');
+    document.getElementById('mainContent').style.display = '';
+  });
 
   document.getElementById('btnSubmit').addEventListener('click', handleSubmit);
   initLiff();

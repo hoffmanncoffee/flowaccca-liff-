@@ -278,9 +278,9 @@
 </head>
 <body>
 
-<div class="overlay" id="overlay">
+<div class="overlay show" id="overlay">
   <div class="spinner"></div>
-  <p id="overlayText">กำลังส่งข้อมูล</p>
+  <p id="overlayText" style="display:none">กำลังส่งข้อมูล</p>
 </div>
 
 <div class="result-screen" id="resultScreen">
@@ -290,7 +290,7 @@
   <button class="btn-retry" id="btnRetry" style="display:none">กลับแก้ไขข้อมูล</button>
 </div>
 
-<div id="mainContent">
+<div id="mainContent" style="display:none">
   <div class="header">
     <div class="header-title">ขอใบกำกับภาษีอิเล็กทรอนิกส์</div>
   </div>
@@ -328,10 +328,27 @@
 
     <div class="card">
       <div class="field">
-        <label class="field-label" for="orderNo">หมายเลขคำสั่งซื้อ (Shopee)<span class="req">*</span></label>
-        <input type="text" id="orderNo" inputmode="text" maxlength="14" placeholder="ตัวอักษรและตัวเลข 14 หลัก" autocomplete="off" />
-        <div class="char-counter"><span id="orderNoCount">0</span> / 14</div>
-        <div class="err-msg" id="orderNoErr">กรุณากรอกหมายเลขคำสั่งซื้อ 14 หลัก</div>
+        <label class="field-label">ช่องทางการสั่งซื้อ<span class="req">*</span></label>
+        <div class="radio-group">
+          <label class="radio-row">
+            <input type="radio" name="platform" value="shopee" id="platformShopee" />
+            <span>Shopee</span>
+          </label>
+          <label class="radio-row">
+            <input type="radio" name="platform" value="lazada" id="platformLazada" />
+            <span>Lazada</span>
+          </label>
+        </div>
+        <div class="err-msg" id="platformErr">กรุณาเลือก Platform</div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="field">
+        <label class="field-label" for="orderNo" id="orderNoLabel">หมายเลขคำสั่งซื้อ<span class="req">*</span></label>
+        <input type="text" id="orderNo" inputmode="text" maxlength="14" placeholder="กรุณาเลือก Platform ก่อน" autocomplete="off" />
+        <div class="char-counter"><span id="orderNoCount">0</span> / <span id="orderNoMax">14</span></div>
+        <div class="err-msg" id="orderNoErr">กรุณากรอกหมายเลขคำสั่งซื้อให้ถูกต้อง</div>
       </div>
     </div>
 
@@ -420,22 +437,17 @@
 
 <script>
   const LIFF_ID = '2010312278-U994TVBK';
-  const WEBHOOK_URL = 'https://script.google.com/macros/s/AKfycbxXyeg0rYNXL4fRCID5zGLo1f8_2uZfeyX4-mU4PUkH4N4el7Ux8jX7yP8kiJyXIUofCw/exec';
+  const SH_WEBHOOK_URL = 'https://script.google.com/macros/s/AKfycbxXyeg0rYNXL4fRCID5zGLo1f8_2uZfeyX4-mU4PUkH4N4el7Ux8jX7yP8kiJyXIUofCw/exec';
+  const LZ_WEBHOOK_URL = 'https://script.google.com/macros/s/AKfycbxaqMF8nP4C6NPjybd5t8yEUeK4gDVp0z3bFyq5kzeEKdFybj434ub4hbmQKh0w3lQZ/exec';
+  let currentPlatform = null;
 
   let lineUserId = null;
   let lineDisplayName = null;
-
-  // แสดง spinner ระหว่าง LIFF token exchange (โหลดครั้งแรก)
-  if (window.location.search.includes('liff.state') || window.location.search.includes('code=')) {
-    document.getElementById('overlayText').style.display = 'none';
-    document.getElementById('overlay').classList.add('show');
-  }
 
   async function initLiff() {
     try {
       await liff.init({ liffId: LIFF_ID });
       if (!liff.isLoggedIn()) {
-        document.getElementById('mainContent').style.display = 'none';
         liff.login();
         return;
       }
@@ -445,16 +457,19 @@
       document.getElementById('userAvatar').src = profile.pictureUrl || '';
       document.getElementById('userName').textContent = profile.displayName;
       document.getElementById('userBadge').classList.add('show');
-    } catch (e) { console.warn('LIFF init:', e); }
-    finally { document.getElementById('overlay').classList.remove('show'); }
+      document.getElementById('mainContent').style.display = '';
+    } catch (e) {
+      console.warn('LIFF init:', e);
+      document.getElementById('mainContent').style.display = '';
+    } finally {
+      document.getElementById('overlay').classList.remove('show');
+    }
   }
 
   function initCounters() {
-    [['orderNo','orderNoCount'],['taxId','taxIdCount']].forEach(([id,cid]) => {
-      const el = document.getElementById(id);
-      const ct = document.getElementById(cid);
-      el.addEventListener('input', () => { ct.textContent = el.value.length; });
-    });
+    const taxEl = document.getElementById('taxId');
+    const taxCt = document.getElementById('taxIdCount');
+    taxEl.addEventListener('input', () => { taxCt.textContent = taxEl.value.length; });
   }
 
   function numericOnly(id) {
@@ -470,11 +485,15 @@
     document.querySelectorAll('input[name="entityType"]').forEach(r => {
       r.addEventListener('change', () => {
         const isCorp = document.getElementById('entityCorp').checked;
+        document.getElementById('entityErr').classList.remove('show');
         document.getElementById('branchSection').classList.toggle('show', isCorp);
         if (!isCorp) {
           document.querySelectorAll('input[name="branchType"]').forEach(x => x.checked = false);
           document.getElementById('branchNumWrap').classList.remove('show');
           document.getElementById('branchNo').value = '';
+          document.getElementById('branchTypeErr').classList.remove('show');
+          document.getElementById('branchNoErr').classList.remove('show');
+          document.getElementById('branchNo').classList.remove('error');
         }
       });
     });
@@ -482,7 +501,11 @@
       r.addEventListener('change', () => {
         const isBranch = document.getElementById('branchSub').checked;
         document.getElementById('branchNumWrap').classList.toggle('show', isBranch);
-        if (!isBranch) document.getElementById('branchNo').value = '';
+        if (!isBranch) {
+          document.getElementById('branchNo').value = '';
+          document.getElementById('branchNoErr').classList.remove('show');
+          document.getElementById('branchNo').classList.remove('error');
+        }
       });
     });
   }
@@ -494,11 +517,60 @@
     if (err) err.classList.toggle('show', hasError);
   }
 
+  function initPlatform() {
+    // conditional numeric strip for orderNo (Lazada only)
+    document.getElementById('orderNo').addEventListener('input', () => {
+      const el = document.getElementById('orderNo');
+      if (currentPlatform === 'lazada') {
+        el.value = el.value.replace(/[^0-9]/g, '');
+      }
+      document.getElementById('orderNoCount').textContent = el.value.length;
+    });
+
+    document.querySelectorAll('input[name="platform"]').forEach(r => {
+      r.addEventListener('change', () => {
+        currentPlatform = r.value;
+        const orderEl   = document.getElementById('orderNo');
+        const orderLabel = document.getElementById('orderNoLabel');
+        const orderMax   = document.getElementById('orderNoMax');
+        if (currentPlatform === 'shopee') {
+          orderLabel.innerHTML   = 'หมายเลขคำสั่งซื้อ (Shopee)<span class="req">*</span>';
+          orderEl.maxLength      = 14;
+          orderEl.placeholder    = 'ตัวอักษรและตัวเลข 14 หลัก';
+          orderEl.inputMode      = 'text';
+          orderMax.textContent   = '14';
+        } else {
+          orderLabel.innerHTML   = 'หมายเลขคำสั่งซื้อ (Lazada)<span class="req">*</span>';
+          orderEl.maxLength      = 16;
+          orderEl.placeholder    = 'ตัวเลข 16 หลัก';
+          orderEl.inputMode      = 'numeric';
+          orderMax.textContent   = '16';
+        }
+        orderEl.value            = '';
+        document.getElementById('orderNoCount').textContent = '0';
+        document.getElementById('platformErr').classList.remove('show');
+        setError('orderNo', 'orderNoErr', false);
+      });
+    });
+  }
+
   function validateForm() {
     let valid = true;
 
-    const orderOk = /^[A-Za-z0-9]{14}$/.test(document.getElementById('orderNo').value);
-    setError('orderNo','orderNoErr',!orderOk); if (!orderOk) valid = false;
+    const platform = document.querySelector('input[name="platform"]:checked');
+    document.getElementById('platformErr').classList.toggle('show', !platform);
+    if (!platform) valid = false;
+
+    const orderVal = document.getElementById('orderNo').value;
+    if (currentPlatform) {
+      let orderOk = false;
+      if (currentPlatform === 'shopee') orderOk = /^[A-Za-z0-9]{14}$/.test(orderVal);
+      else if (currentPlatform === 'lazada') orderOk = /^\d{16}$/.test(orderVal);
+      setError('orderNo','orderNoErr',!orderOk);
+      if (!orderOk) valid = false;
+    } else {
+      setError('orderNo','orderNoErr', false);
+    }
 
     const entity = document.querySelector('input[name="entityType"]:checked');
     document.getElementById('entityErr').classList.toggle('show', !entity);
@@ -542,10 +614,12 @@
     }
     const entityVal = document.querySelector('input[name="entityType"]:checked').value;
     const branchTypeVal = entityVal === 'corporate' ? document.querySelector('input[name="branchType"]:checked')?.value : null;
+    const WEBHOOK_URL = currentPlatform === 'lazada' ? LZ_WEBHOOK_URL : SH_WEBHOOK_URL;
     const payload = {
       line_user_id: lineUserId,
       line_display_name: lineDisplayName,
       order_no: document.getElementById('orderNo').value,
+      platform: currentPlatform,
       entity_type: entityVal,
       branch_type: branchTypeVal,
       branch_no: branchTypeVal === 'branch' ? document.getElementById('branchNo').value : null,
@@ -558,7 +632,7 @@
       submitted_at: new Date().toISOString(),
     };
 
-    document.getElementById('overlayText').style.display = '';
+    document.getElementById('overlayText').style.display = 'block';
     document.getElementById('overlay').classList.add('show');
     document.getElementById('btnSubmit').disabled = true;
 
@@ -581,8 +655,8 @@
     document.getElementById('mainContent').style.display = 'none';
     document.getElementById('btnSubmit').disabled = false;
     const screen = document.getElementById('resultScreen');
-    screen.classList.add('show');
     screen.classList.remove('error', 'success');
+    screen.classList.add('show');
     screen.classList.add(type === 'success' ? 'success' : 'error');
     document.getElementById('resultTitle').textContent =
       type === 'success' ? 'ส่งข้อมูลเรียบร้อยแล้ว' : 'ไม่สามารถดำเนินการได้';
@@ -600,6 +674,7 @@
   initCounters();
   initNumericInputs();
   initConditional();
+  initPlatform();
 </script>
 </body>
 </html>
